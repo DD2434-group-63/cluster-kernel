@@ -2,8 +2,11 @@ import argparse
 import os
 
 import numpy as np
+from sklearn.svm import LinearSVC
 
-from svm_new import SVM
+# Hyperparameters
+C = 1.0
+kernel = "rbf"
 
 
 def compute_accuracy(predictions, targets):
@@ -56,15 +59,17 @@ def main():
     test_inputs = test_inputs[random_perm, :]
     test_targets = test_targets[random_perm]
 
+    print(train_inputs.shape)
+
     # Run SVM
-    svm = SVM(kernel_type="rbf", epsilon=1e-9)
-    svm.fit(train_inputs, train_targets)
+    lsvm = LinearSVC(C=1)
+    lsvm.fit(train_inputs, train_targets)
 
     # Save trained SVM
     # TODO
 
     # Test SVM
-    test_predictions = svm.predict(test_inputs)
+    test_predictions = lsvm.predict(test_inputs)
     accuracy = compute_accuracy(test_predictions, test_targets)
     print("Accuracy = ", accuracy)
 
