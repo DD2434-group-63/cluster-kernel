@@ -6,6 +6,13 @@ import numpy as np
 from svm_new import SVM
 
 
+def compute_accuracy(predictions, targets):
+    """
+    Computes the accuracy of predictions in relation to targets.
+    """
+    return predictions[predictions == targets].size / predictions.size
+
+
 def main():
 
     # Argument parsing
@@ -50,8 +57,16 @@ def main():
     test_targets = test_targets[random_perm]
 
     # Run SVM
-    svm = SVM()
+    svm = SVM(kernel_type="rbf", epsilon=1e-9)
     svm.fit(train_inputs, train_targets)
+
+    # Save trained SVM
+    # TODO
+
+    # Test SVM
+    test_predictions = svm.predict(test_inputs)
+    accuracy = compute_accuracy(test_predictions, test_targets)
+    print("Accuracy = ", accuracy)
 
 
 if __name__ == "__main__":

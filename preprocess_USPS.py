@@ -61,7 +61,7 @@ def divide_data():
 
     label also the entire test set
     """
-    index = random.sample(range(len(X_tr)), 10)
+    index = random.sample(range(len(X_tr)), 2000)
     train_classA = [] # 1
     train_classB = [] # -1
     train_unlabeled = []
