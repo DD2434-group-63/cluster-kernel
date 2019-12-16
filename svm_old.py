@@ -33,7 +33,7 @@ def pMat(inputs, targets):
     for i in range(n):
         for j in range(n):
             P[i][j] = targets[i] * targets[j] * kernel_function(inputs[i], inputs[j])
-    return np.array([P])
+    return np.array(P)
 
 
 def objective(alpha, p_matrix):
@@ -87,6 +87,13 @@ def indicator(s, b, alpha, inputs, targets):
     return ind - b
 
 
+def iteration_callback(current_alpha, p_matrix):
+    """
+    Callback for optimization function.
+    """
+    print("Objective: ", objective(current_alpha, p_matrix))
+
+
 def main():
 
     # Argument parsing
@@ -131,7 +138,7 @@ def main():
     p_matrix = pMat(train_inputs, train_targets)  # matrix of kernel times targets (see assignment pdf)
 
     # Optimize
-    ret = minimize(objective, start, args=p_matrix[0], bounds=B, constraints=XC)
+    ret = minimize(objective, start, args=p_matrix, bounds=B, constraints=XC, callback=lambda a: iteration_callback(a, p_matrix))
     alpha = ret['x']
     print("Optimization succeeded:", ret['success'])
 
