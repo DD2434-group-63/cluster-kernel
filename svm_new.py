@@ -1,7 +1,7 @@
 import numpy as np
 import random as rnd
 
-import kernels as k
+import kernel_functions as k
 
 # Kernel hyperparameters
 SIGMA = 3
@@ -37,7 +37,8 @@ class SVM():
             count += 1
             alpha_prev = np.copy(alpha)
             for j in range(0, n):
-                i = self.get_rnd_int(0, n - 1, j)  # Get random int i~=j
+
+                i = self.get_rnd_int(0, n - 1, j)  # Get random int i ~= j
                 inputs_i, inputs_j, targets_i, targets_j = inputs[i, :], inputs[j, :], targets[i], targets[j]
                 k_ij = kernel(inputs_i, inputs_i) + kernel(inputs_j, inputs_j) - 2 * kernel(inputs_i, inputs_j)
                 if k_ij == 0:
@@ -60,6 +61,9 @@ class SVM():
 
                 alpha[i] = alpha_prime_i + targets_i * targets_j * (alpha_prime_j - alpha[j])
 
+            # Print progress
+            print("Iteration {}, Objective = {}".format(count, self.objective(inputs, targets, alpha)))
+
             # Check convergence
             diff = np.linalg.norm(alpha - alpha_prev)
             if diff < self.epsilon:
@@ -79,11 +83,21 @@ class SVM():
         support_vectors = inputs[alpha_idx, :]
         return support_vectors, count
 
+    def objective(self, inputs, targets, alpha):
+
+        kernel = self.kernels[self.kernel_type]
+        result = np.sum(alpha)
+        for i in range(inputs.shape[0]):
+            for j in range(inputs.shape[1]):
+                result += -0.5 * targets[i] * targets[j] * kernel(inputs[i, :], inputs[j, :]) * alpha[i] * alpha[j]
+
+        return result
+
     def predict(self, inputs):
         return self.h(inputs, self.w, self.b)
 
     def calc_b(self, inputs, targets, w):
-        b_tmp = targets - np.dot(w.T, inputs.T)
+        b_tmp = targets - np.dot(w, inputs.T)
         return np.mean(b_tmp)
 
     def calc_w(self, alpha, inputs, targets):
@@ -91,7 +105,7 @@ class SVM():
 
     # Prediction
     def h(self, X, w, b):
-        return np.sign(np.dot(w.T, X.T) + b).astype(int)
+        return np.sign(np.dot(w, X.T) + b).astype(int)
 
     # Prediction error
     def E(self, x_k, y_k, w, b):
