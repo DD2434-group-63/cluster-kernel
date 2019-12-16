@@ -103,17 +103,23 @@ def main():
 
     # Load data
     train_classA_path = os.path.join(args.load_path, "train_classA.npy")
-    train_classA = np.load(train_classA_path, allow_pickle=True).item().todense()
     train_classB_path = os.path.join(args.load_path, "train_classB.npy")
-    train_classB = np.load(train_classB_path, allow_pickle=True).item().todense()
-
     train_unlabeled_path = os.path.join(args.load_path, "train_unlabeled.npy")
-    train_unlabeled = np.load(train_unlabeled_path, allow_pickle=True).item().todense()
-
     test_classA_path = os.path.join(args.load_path, "test_classA.npy")
-    test_classA = np.load(test_classA_path, allow_pickle=True).item().todense()
     test_classB_path = os.path.join(args.load_path, "test_classB.npy")
-    test_classB = np.load(test_classB_path, allow_pickle=True).item().todense()
+
+    try:
+        train_classA = np.load(train_classA_path, allow_pickle=True).item().todense()
+        train_classB = np.load(train_classB_path, allow_pickle=True).item().todense()
+        train_unlabeled = np.load(train_unlabeled_path, allow_pickle=True).item().todense()
+        test_classA = np.load(test_classA_path, allow_pickle=True).item().todense()
+        test_classB = np.load(test_classB_path, allow_pickle=True).item().todense()
+    except:
+        train_classA = np.load(train_classA_path)
+        train_classB = np.load(train_classB_path)
+        train_unlabeled = np.load(train_unlabeled_path)
+        test_classA = np.load(test_classA_path)
+        test_classB = np.load(test_classB_path)
 
     # Stack training samples
     train_inputs = np.concatenate((train_classA, train_classB))
