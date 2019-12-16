@@ -1,9 +1,10 @@
+import argparse
+
 import numpy as np
-from data import *
-import random
-import math
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
+
+from data import *
 
 
 N = targets.shape[0]
@@ -88,6 +89,9 @@ def indicator(s, b, alpha):
 
 
 def main():
+
+    # Argument parsing
+
 
     # Initialization
     start = np.zeros(N)  # alpha initial value
