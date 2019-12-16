@@ -76,7 +76,7 @@ class SVM():
         # Compute final model parameters
         self.b = self.calc_b(inputs, targets, self.w)
         if self.kernel_type == 'linear':
-            self.w = self.calc_w(alpha, targets, inputs)
+            self.w = self.calc_w(alpha, inputs, targets)
 
         # Get support vectors
         alpha_idx = np.where(alpha > 0)[0]
@@ -88,7 +88,7 @@ class SVM():
         kernel = self.kernels[self.kernel_type]
         result = np.sum(alpha)
         for i in range(inputs.shape[0]):
-            for j in range(inputs.shape[1]):
+            for j in range(inputs.shape[0]):
                 result += -0.5 * targets[i] * targets[j] * kernel(inputs[i, :], inputs[j, :]) * alpha[i] * alpha[j]
 
         return result
