@@ -13,11 +13,12 @@ SIGMA = 3
 KERNEL = "rbf"
 
 
-
-
 def kernel_function(x, y):
+    """
+    Implementetion of kernel functions.
+    """
     if KERNEL == 'linear':
-        return np.dot(x,y)
+        return np.dot(x, y)
     elif KERNEL == "poly":
         return np.power(np.dot(x, y) + 1, p)
     elif KERNEL == "rbf":
@@ -25,6 +26,10 @@ def kernel_function(x, y):
 
 
 def pMat(x):
+    """
+    Computes matrix of kernels times targets s.t.
+    P_{ij} = t_i t_j K(x_i, x_j)
+    """
     n = targets.shape[0]
     P = np.zeros((n, n))
     for i in range(n):
@@ -34,66 +39,79 @@ def pMat(x):
 
 
 def objective(alpha, p_matrix):
+    """
+    Optimization objective.
+    """
     return 0.5 * np.dot(alpha, np.dot(alpha, p_matrix)) - np.sum(alpha)
 
 
 def zerofun(alpha):
+    """
+    Function to help implement constraint \sum_i \alpha_i\t_i = 0
+    """
     return np.dot(alpha, targets)
 
 
 def non_zero_alpha(alpha):
+    """
+    Finds the support vectors given optimal alpha.
+    """
     sv_inputs = []
-    sv_targets =[]
+    sv_targets = []
     non_zero_alphas = []
-    for i,v in enumerate(alpha):
+    for i, v in enumerate(alpha):
         if v > 1e-05:
             non_zero_alphas.append(v)
             sv_inputs.append(inputs[i])
             sv_targets.append(targets[i])
-    return np.array(non_zero_alphas),np.array(sv_inputs),np.array(sv_targets)
+    return np.array(non_zero_alphas), np.array(sv_inputs), np.array(sv_targets)
 
 
-def bias(alpha, non_zero_alphas,sv_inputs,sv_targets):
+def bias(alpha, non_zero_alphas, sv_inputs, sv_targets):
+    """
+    Computes the bias given optimal alpha and support vectors.
+    """
     b = 0
     for i in range(N):
-        b += alpha[i]*targets[i]*kernel_function(sv_inputs[0],inputs[i])
+        b += alpha[i] * targets[i] * kernel_function(sv_inputs[0], inputs[i])
     return b - sv_targets[0]
 
 
-def indicator(x, y, b, alpha):
-    s = [x,y]
+def indicator(s, b, alpha):
+    """
+    Predicts class of (x, y).
+    """
     ind = 0
     for i in range(N):
-        ind += alpha[i]*targets[i]*kernel_function(s,inputs[i])
+        ind += alpha[i] * targets[i] * kernel_function(s, inputs[i])
     return ind - b
 
 
-def decision_boundry():
-    xgrid = np.linspace(-5, 5)
-    ygrid = np.linspace(-4, 4)
-    grid = np.array([[indicator(x, y, b) for x in xgrid] for y in ygrid])
-    plt.contour(xgrid, ygrid, grid, (-1.0, 0.0, 1.0), colors=('red', 'black', 'blue'), linewidths=(1, 3, 1))
-    return
-
-
 def main():
-    start = np.zeros(N)
-    B = [(0, C) for b in range(N)]
-    XC = {'type': 'eq', 'fun': zerofun}
-    p_matrix = pMat(inputs)
-    ret = minimize(objective, start,args=p_matrix[0], bounds=B, constraints=XC)
+
+    # Initialization
+    start = np.zeros(N)  # alpha initial value
+    B = [(0, C) for b in range(N)]  # bounds on alpha
+    XC = {'type': 'eq', 'fun': zerofun}  # optimization constraints
+    p_matrix = pMat(inputs)  # matrix of kernel times targets (see assignment pdf)
+
+    # Optimize
+    ret = minimize(objective, start, args=p_matrix[0], bounds=B, constraints=XC)
     alpha = ret['x']
-    print(ret['success'])
+    print("Optimization succeeded:", ret['success'])
 
-    non_zero_alphas,sv_inputs,sv_targets = non_zero_alpha(alpha)
-    b = bias(alpha, non_zero_alphas,sv_inputs,sv_targets)
+    # Find support vectors
+    non_zero_alphas, sv_inputs, sv_targets = non_zero_alpha(alpha)
 
+    # Calculate bias
+    b = bias(alpha, non_zero_alphas, sv_inputs, sv_targets)
+
+    # Plot results
     xgrid = np.linspace(-5, 5)
     ygrid = np.linspace(-4, 4)
     grid = np.array([[indicator(x, y, b, alpha) for x in xgrid] for y in ygrid])
     plt.contour(xgrid, ygrid, grid, (-1.0, 0.0, 1.0), colors=('red', 'black', 'blue'), linewidths=(1, 3, 1))
     plt.legend(["class A", "class B"])
- #   plt.title("Polynomial. p=4, c=10")
     plt.show()
 
 
