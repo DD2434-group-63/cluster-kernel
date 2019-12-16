@@ -1,11 +1,9 @@
+import numpy as np
+from data import *
 import random
 import math
-
-import numpy as np
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
-
-from data import *
 
 
 N = targets.shape[0]
