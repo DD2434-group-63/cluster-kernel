@@ -29,7 +29,7 @@ def hdf5(path, data_key = "data", target_key = "target", flatten = True):
     return X_tr, y_tr, X_te, y_te
 
 
-X_tr, y_tr, X_te, y_te = hdf5("preprocess_USPS/input/usps.h5")
+X_tr, y_tr, X_te, y_te = hdf5("data/preprocess_USPS/input/usps.h5")
 #print(X_tr.shape) 7291x256
 #print(X_te.shape) 2007
 
@@ -116,4 +116,4 @@ def main(path):
 
 
 if __name__ == '__main__':
-    main('preprocess_USPS')
+    main('data/preprocess_USPS')
