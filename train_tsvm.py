@@ -2,12 +2,8 @@ import argparse
 import os
 
 import numpy as np
-from sklearn.svm import SVC
+from tsvm import SKTSVM
 from sklearn import metrics
-
-# Hyperparameters
-C = 1.0
-kernel = "rbf"
 
 
 def compute_accuracy(predictions, targets):
@@ -44,28 +40,30 @@ def main():
         test_classA = np.load(test_classA_path)
         test_classB = np.load(test_classB_path)
 
-    # Stack training samples
-    train_inputs = np.concatenate((train_classA, train_classB))
-    train_targets = np.concatenate((np.ones(train_classA.shape[0]), -np.ones(train_classB.shape[0])))
+    # Stack training samples (labeled and unlabeled)
+    # Labeled samples get labels 0 and 1, unlabeled gets label -1
+    train_inputs = np.concatenate((train_classA, train_classB, train_unlabeled))
+    train_targets = np.concatenate((np.ones(train_classA.shape[0], dtype=np.int8), np.zeros(train_classB.shape[0], dtype=np.int8), -np.ones(train_unlabeled.shape[0], dtype=np.int8)))
     N = train_inputs.shape[0]
     random_perm = np.random.permutation(N)
     train_inputs = train_inputs[random_perm, :]
     train_targets = train_targets[random_perm]
 
     # Stack test samples
+    # Labels are 0 and 1
     test_inputs = np.concatenate((test_classA, test_classB))
-    test_targets = np.concatenate((np.ones(test_classA.shape[0]), -np.ones(test_classB.shape[0])))
+    test_targets = np.concatenate((np.ones(test_classA.shape[0], dtype=np.int8), np.zeros(test_classB.shape[0], dtype=np.int8)))
     N_test = test_inputs.shape[0]
     random_perm = np.random.permutation(N_test)
     test_inputs = test_inputs[random_perm, :]
     test_targets = test_targets[random_perm]
 
-    # Run SVM
-    svm = SVC(C=1000, kernel="rbf")
-    svm.fit(train_inputs, train_targets)
+    # Run transductive svm
+    tsvm = SKTSVM(kernel="rbf", probability=False)
+    tsvm.fit(train_inputs, train_targets)
 
-    # Test SVM
-    test_predictions = svm.predict(test_inputs)
+    # Test trained tsvm
+    test_predictions = tsvm.predict(test_inputs)
     accuracy = compute_accuracy(test_predictions, test_targets)
     f1_score = metrics.f1_score(test_targets, test_predictions, average='macro')
     print("Accuracy = ", accuracy)

@@ -3,7 +3,7 @@ import argparse
 
 import numpy as np
 from sklearn.datasets import fetch_20newsgroups
-from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 WINDOWS_IND = 4
 MAC_IND = 5
@@ -12,8 +12,12 @@ if __name__ == "__main__":
 
     argparser = argparse.ArgumentParser()
     argparser.add_argument("save_path", type=str, help="Path to save preprocessed data to.")
-    argparser.add_argument("n_unlabeled", type=int, help="Number of points to keep unlabeled")
+    argparser.add_argument("--n_unlabeled", type=int, default=None, help="Number of points to be unlabeled. Remaining points will be labeled.")
+    argparser.add_argument("--n_labeled", type=int, default=None, help="Number of points to be labeled. Remaining points will be unlabeled.")
     args = argparser.parse_args()
+
+    assert args.n_labeled is not None or args.n_unlabeled is not None, "One of n_labeled or n_unlabeled must be specified."
+    assert args.n_labeled is None or args.n_unlabeled is None, "ONly one of n_labeled or n_unlabeled can be specified."
 
     # If save path does not exist, create it
     directory = os.path.dirname(args.save_path)
@@ -30,7 +34,7 @@ if __name__ == "__main__":
     test_targets = test_data.target
 
     # Extract features
-    count_vec = CountVectorizer(max_features=7511)
+    count_vec = TfidfVectorizer(max_features=7511)
     train_inputs = count_vec.fit_transform(train_inputs)
     test_inputs = count_vec.fit_transform(test_inputs)
 
@@ -44,6 +48,8 @@ if __name__ == "__main__":
     test_targets = test_targets[samples_to_use_mask]
 
     # Randomly select specified number of unlabeled samples
+    if args.n_labeled is not None:
+        args.n_unlabeled = train_inputs.shape[0] - args.n_labeled
     random_indices = np.random.choice(train_inputs.shape[0], args.n_unlabeled, replace=False)
     train_unlabeled = train_inputs[random_indices, :]
     mask = np.ones(train_inputs.shape[0], dtype=bool)
