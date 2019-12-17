@@ -1,116 +1,128 @@
-from sklearn.base import BaseEstimator
-import sklearn.metrics
-import random as rnd
-import numpy
-from sklearn.linear_model import LogisticRegression as LR
-from tsvm_backend import QN_S3VM
+# coding:utf-8
+import numpy as np
+import sklearn.svm as svm
+from sklearn.externals import joblib
+import pickle
+from sklearn.model_selection import train_test_split,cross_val_score
 
-class SKTSVM(BaseEstimator):
-    """
-    Scikit-learn wrapper for transductive SVM (SKTSVM)
+class TSVM(object):
+    def __init__(self):
+        pass
 
-    Wraps QN-S3VM by Fabian Gieseke, Antti Airola, Tapio Pahikkala, Oliver Kramer (see http://www.fabiangieseke.de/index.php/code/qns3vm)
-    as a scikit-learn BaseEstimator, and provides probability estimates using Platt scaling
-    Parameters
-    ----------
-    C : float, optional (default=1.0)
-        Penalty parameter C of the error term.
-    kernel : string, optional (default='rbf')
-         Specifies the kernel type to be used in the algorithm.
-         It must be 'linear' or 'rbf'
-    gamma : float, optional (default=0.0)
-        Kernel coefficient for 'rbf'
-    lamU: float, optional (default=1.0)
-        cost parameter that determines influence of unlabeled patterns
-        must be float >0
-    probability: boolean, optional (default=False)
-        Whether to enable probability estimates. This must be enabled prior
-        to calling `fit`, and will slow down that method.
-    """
-
-    # lamU -- cost parameter that determines influence of unlabeled patterns (default 1, must be float > 0)
-    def __init__(self, kernel = 'Linear', C = 1e-4, gamma = 0.5, lamU = 1.0, probability=True):
-        self.random_generator = rnd.Random()
+    def initial(self, kernel='linear'):
+        '''
+        Initial TSVM
+        Parameters
+        ----------
+        kernel: kernel of svm
+        '''
+        self.Cl, self.Cu = 1.5, 0.001
         self.kernel = kernel
-        self.C = C
-        self.gamma = gamma
-        self.lamU = lamU
-        self.probability = probability
+        self.clf = svm.SVC(C=1.5, kernel=self.kernel, gamma=0.02)
 
-    def fit(self, X, y): # -1 for unlabeled
-        """Fit the model according to the given training data.
+    def load(self, model_path='./TSVM.model'):
+        '''
+        Load TSVM from model_path
         Parameters
         ----------
-        X : array-like, shape = [n_samples, n_features]
-            Training vector, where n_samples in the number of samples and
-            n_features is the number of features.
-        y : array-like, shape = [n_samples]
-            Target vector relative to X
-            Must be 0 or 1 for labeled and -1 for unlabeled instances
-        Returns
-        -------
-        self : object
-            Returns self.
-        """
+        model_path: model path of TSVM
+                        model should be svm in sklearn and saved by sklearn.externals.joblib
+        '''
+        self.clf = joblib.load(model_path)
 
-        # http://www.fabiangieseke.de/index.php/code/qns3vm
-
-        unlabeledX = X[y==-1, :].tolist()
-        labeledX = X[y!=-1, :].tolist()
-        labeledy = y[y!=-1]
-
-        # convert class 0 to -1 for tsvm
-        labeledy[labeledy==0] = -1
-        labeledy = labeledy.tolist()
-
-        if 'rbf' in self.kernel.lower():
-            self.model = QN_S3VM(labeledX, labeledy, unlabeledX, self.random_generator, lam=self.C, lamU=self.lamU, kernel_type="RBF", sigma=self.gamma)
-        else:
-            self.model = QN_S3VM(labeledX, labeledy, unlabeledX, self.random_generator, lam=self.C, lamU=self.lamU)
-
-        self.model.train()
-
-        # probabilities by Platt scaling
-        if self.probability:
-            self.plattlr = LR(solver = 'lbfgs')
-            preds = self.model.mygetPreds(labeledX)
-            self.plattlr.fit( preds.reshape( -1, 1 ), labeledy )
-
-    def predict_proba(self, X):
-        """Compute probabilities of possible outcomes for samples in X.
-        The model need to have probability information computed at training
-        time: fit with attribute `probability` set to True.
+    def train(self, X1, Y1, X2):
+        '''
+        Train TSVM by X1, Y1, X2
         Parameters
         ----------
-        X : array-like, shape = [n_samples, n_features]
+        X1: Input data with labels
+                np.array, shape:[n1, m], n1: numbers of samples with labels, m: numbers of features
+        Y1: labels of X1
+                np.array, shape:[n1, ], n1: numbers of samples with labels
+        X2: Input data without labels
+                np.array, shape:[n2, m], n2: numbers of samples without labels, m: numbers of features
+        '''
+        N = len(X1) + len(X2)
+        sample_weight = np.ones(N)
+        sample_weight[len(X1):] = self.Cu
+
+        self.clf.fit(X1, Y1)
+        Y2 = self.clf.predict(X2)
+        Y2 = np.expand_dims(Y2, 1)
+        X2_id = np.arange(len(X2))
+        Y1 = np.expand_dims(Y1, 1)
+        X3 = np.vstack([X1, X2])
+        Y3 = np.vstack([Y1, Y2])
+
+        while self.Cu < self.Cl:
+            self.clf.fit(X3, Y3, sample_weight=sample_weight)
+            while True:
+                Y2_d = self.clf.decision_function(X2)    # linear: w^Tx + b
+                Y2 = Y2.reshape(-1)
+                epsilon = 1 - Y2 * Y2_d   # calculate function margin
+                positive_set, positive_id = epsilon[Y2 > 0], X2_id[Y2 > 0]
+                negative_set, negative_id = epsilon[Y2 < 0], X2_id[Y2 < 0]
+                positive_max_id = positive_id[np.argmax(positive_set)]
+                negative_max_id = negative_id[np.argmax(negative_set)]
+                a, b = epsilon[positive_max_id], epsilon[negative_max_id]
+                if a > 0 and b > 0 and a + b > 2.0:
+                    Y2[positive_max_id] = Y2[positive_max_id] * -1
+                    Y2[negative_max_id] = Y2[negative_max_id] * -1
+                    Y2 = np.expand_dims(Y2, 1)
+                    Y3 = np.vstack([Y1, Y2])
+                    self.clf.fit(X3, Y3, sample_weight=sample_weight)
+                else:
+                    break
+            self.Cu = min(2*self.Cu, self.Cl)
+            sample_weight[len(X1):] = self.Cu
+
+    def score(self, X, Y):
+        '''
+        Calculate accuracy of TSVM by X, Y
+        Parameters
+        ----------
+        X: Input data
+                np.array, shape:[n, m], n: numbers of samples, m: numbers of features
+        Y: labels of X
+                np.array, shape:[n, ], n: numbers of samples
         Returns
         -------
-        T : array-like, shape = [n_samples, n_classes]
-            Returns the probability of the sample for each class in
-            the model. The columns correspond to the classes in sorted
-            order, as they appear in the attribute `classes_`.
-        """
-
-        if self.probability:
-            preds = self.model.mygetPreds(X.tolist())
-            return self.plattlr.predict_proba(preds.reshape( -1, 1 ))
-        else:
-            raise RuntimeError("Probabilities were not calculated for this model - make sure you pass probability=True to the constructor")
+        Accuracy of TSVM
+                float
+        '''
+        return self.clf.score(X, Y)
 
     def predict(self, X):
-        """Perform classification on samples in X.
+        '''
+        Feed X and predict Y by TSVM
         Parameters
         ----------
-        X : array-like, shape = [n_samples, n_features]
+        X: Input data
+                np.array, shape:[n, m], n: numbers of samples, m: numbers of features
         Returns
         -------
-        y_pred : array, shape = [n_samples]
-            Class labels for samples in X.
-        """
+        labels of X
+                np.array, shape:[n, ], n: numbers of samples
+        '''
+        return self.clf.predict(X)
 
-        y = numpy.array(self.model.getPredictions(X.tolist()))
-        y[y == -1] = 0
-        return y
+    def save(self, path='./TSVM.model'):
+        '''
+        Save TSVM to model_path
+        Parameters
+        ----------
+        model_path: model path of TSVM
+                        model should be svm in sklearn
+        '''
+        joblib.dump(self.clf, path)
 
-    def score(self, X, y, sample_weight=None):
-        return sklearn.metrics.accuracy_score(y, self.predict(X), sample_weight=sample_weight)
+"""
+if __name__ == '__main__':
+
+    model = TSVM()
+    model.initial('rbf')
+    model.train(train_labeled, train_target, train_unlabeled)
+    Y_hat = model.predict(test_inputs)
+    accuracy = model.score(test_inputs, test_output)
+    print(accuracy)
+"""

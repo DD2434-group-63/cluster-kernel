@@ -4,7 +4,7 @@ import os
 import numpy as np
 from sklearn.svm import SVC
 from sklearn import metrics
-from kernel_functions import *
+from tsvm import *
 
 # Hyperparameters
 C = 1.0
@@ -23,7 +23,6 @@ def main():
     # Argument parsing
     argparser = argparse.ArgumentParser()
     argparser.add_argument("load_path", type=str, help="Path to load data from.")
-    argparser.add_argument("--type_kernel", type=str, help="Specify the type of kernel used in SVM.")
     args = argparser.parse_args()
 
     # Load data
@@ -61,25 +60,21 @@ def main():
     random_perm = np.random.permutation(N_test)
     test_inputs = test_inputs[random_perm, :]
     test_targets = test_targets[random_perm]
-    gamma = 1
 
-    # Run SVM
-    if args.type_kernel == "normal":
+    # Run TSVM
+    model = TSVM()
+    model.initial('rbf')
+    model.train(train_inputs, train_targets, train_unlabeled)
 
-        svm = SVC(C=1000, kernel="rbf")
-    else:
-        svm = SVC(C=1000, kernel=lambda X_labeled, T: cluster_kernel_extension(X_labeled,train_unlabeled,gamma,'linear',1))
-    svm.fit(train_inputs, train_targets)
+    # Test TSVM
+    test_predictions = model.predict(test_inputs)
 
-    # Save trained SVM
-    # TODO
-
-    # Test SVM
-    test_predictions = svm.predict(test_inputs)
+    # performance
     accuracy = compute_accuracy(test_predictions, test_targets)
     f1_score = metrics.f1_score(test_targets, test_predictions, average='macro')
     print("Accuracy = ", accuracy)
     print("F1 score = ", f1_score)
+
 
 
 if __name__ == "__main__":
