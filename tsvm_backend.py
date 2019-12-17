@@ -12,7 +12,7 @@ import scipy.sparse.csc as csc
 from scipy import sparse
 import scipy
 import warnings
-warnings.simplefilter('error')
+# warnings.simplefilter('error')
 
 class QN_S3VM:
     """
