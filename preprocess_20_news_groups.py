@@ -3,7 +3,7 @@ import argparse
 
 import numpy as np
 from sklearn.datasets import fetch_20newsgroups
-from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 WINDOWS_IND = 4
 MAC_IND = 5
@@ -34,7 +34,7 @@ if __name__ == "__main__":
     test_targets = test_data.target
 
     # Extract features
-    count_vec = CountVectorizer(max_features=7511)
+    count_vec = TfidfVectorizer(max_features=7511)
     train_inputs = count_vec.fit_transform(train_inputs)
     test_inputs = count_vec.fit_transform(test_inputs)
 

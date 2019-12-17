@@ -2,7 +2,8 @@ import argparse
 import os
 
 import numpy as np
-from sklearn.svm import LinearSVC
+from sklearn.svm import SVC
+from sklearn import metrics
 
 # Hyperparameters
 C = 1.0
@@ -59,19 +60,19 @@ def main():
     test_inputs = test_inputs[random_perm, :]
     test_targets = test_targets[random_perm]
 
-    print(train_inputs.shape)
-
     # Run SVM
-    lsvm = LinearSVC(C=1)
-    lsvm.fit(train_inputs, train_targets)
+    svm = SVC(C=1000, kernel="rbf")
+    svm.fit(train_inputs, train_targets)
 
     # Save trained SVM
     # TODO
 
     # Test SVM
-    test_predictions = lsvm.predict(test_inputs)
+    test_predictions = svm.predict(test_inputs)
     accuracy = compute_accuracy(test_predictions, test_targets)
+    f1_score = metrics.f1_score(test_targets, test_predictions, average='macro')
     print("Accuracy = ", accuracy)
+    print("F1 score = ", f1_score)
 
 
 if __name__ == "__main__":
