@@ -61,6 +61,9 @@ def main():
     test_inputs = test_inputs[random_perm, :]
     test_targets = test_targets[random_perm]
 
+    # Add test samples to unlabeled samples
+    train_unlabeled = np.concatenate((train_unlabeled, test_inputs))
+
     # Run TSVM
     model = TSVM()
     model.initial('rbf')
