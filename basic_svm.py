@@ -4,6 +4,7 @@ import os
 import numpy as np
 from sklearn.svm import SVC
 from sklearn import metrics
+from kernel_functions import *
 
 # Hyperparameters
 C = 1.0
@@ -22,6 +23,7 @@ def main():
     # Argument parsing
     argparser = argparse.ArgumentParser()
     argparser.add_argument("load_path", type=str, help="Path to load data from.")
+    argparser.add_argument("--type_kernel", type=str, help="Specify the type of kernel used in SVM.")
     args = argparser.parse_args()
 
     # Load data
@@ -59,9 +61,14 @@ def main():
     random_perm = np.random.permutation(N_test)
     test_inputs = test_inputs[random_perm, :]
     test_targets = test_targets[random_perm]
+    gamma = 1
 
     # Run SVM
-    svm = SVC(C=1000, kernel="rbf")
+    if args.type_kernel == "normal":
+
+        svm = SVC(C=1000, kernel="rbf")
+    else:
+        svm = SVC(C=1000, kernel=lambda X_labeled, T: cluster_kernel_extension(X_labeled,train_unlabeled,gamma,'linear',1))
     svm.fit(train_inputs, train_targets)
 
     # Save trained SVM
