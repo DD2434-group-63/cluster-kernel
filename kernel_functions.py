@@ -94,7 +94,7 @@ def clustring_kernel(X, gamma, k):
 
 
 
-def cluster_kernel_extension(X_labeled, X_unlabeled, gamma, kernel,t):
+def cluster_kernel_extension(X_labeled, X_unlabeled, X_test, gamma, kernel, t):
 
     """
     :param X_labeled:  The labaled data points
@@ -104,11 +104,10 @@ def cluster_kernel_extension(X_labeled, X_unlabeled, gamma, kernel,t):
     :return: The The kernel phi(X)
 
     """
-    X = np.concatenate((X_labeled,X_unlabeled))
-    print(X.shape)
+    X = np.concatenate((X_labeled,X_test,X_unlabeled))
 
     K = rbf_kernel(X)
-
+    print(K.shape)
 
     """
     # affitnity matrix
@@ -129,7 +128,8 @@ def cluster_kernel_extension(X_labeled, X_unlabeled, gamma, kernel,t):
         sqrt_D[i,i] = np.power(row_sum,(-0.5))
 
     # matrix L
-    L = np.dot(sqrt_D, K).dot(sqrt_D)
+    L = np.matmul(np.matmul(sqrt_D, K),sqrt_D)
+
 
     # eigendecomposition of L
     # Lambda: eigenvalues, U: eigenvectors
@@ -137,7 +137,6 @@ def cluster_kernel_extension(X_labeled, X_unlabeled, gamma, kernel,t):
     Lambda, U = np.linalg.eig(L)
 
     lambda_cut = max(Lambda)
-
 
     # call kernel
     if kernel  == "linear":
@@ -157,12 +156,21 @@ def cluster_kernel_extension(X_labeled, X_unlabeled, gamma, kernel,t):
 
     # compute K_tilde
     sqrt_D_tilde = np.zeros(D_tilde.shape)
-    np.fill_diagonal(sqrt_D_tilde, np.power(D_tilde.diagonal(), 0.5) )
+    np.fill_diagonal(sqrt_D_tilde, np.power(D_tilde.diagonal(), 0.5))
     K_tilde = np.dot(sqrt_D_tilde, L_tilde).dot(sqrt_D_tilde)
 
     # Filter K_tilde just for the labeled data set.
-    K_tilde = K_tilde[0:X_labeled.shape[0],0:X_labeled.shape[0]]
-    return K_tilde
+    K_tilde_labeled = K_tilde[0:X_labeled.shape[0],0:X_labeled.shape[0]]
+
+    K_tilde_test = K_tilde[X_labeled.shape[0]:X_labeled.shape[0]*2 , 0:X_test.shape[0]]
+
+    K_tilde_unlabeled = K_tilde[X_labeled.shape[0] + X_unlabeled.shape[0]:
+                           X_labeled.shape[0] + X_unlabeled.shape[0] + X_test.shape[0],
+                   X_labeled.shape[0] + X_unlabeled.shape[0]:
+                   X_labeled.shape[0] + X_unlabeled.shape[0] + X_test.shape[0]]
+
+    print("passed the cluster kernels")
+    return K_tilde_labeled, K_tilde_unlabeled, K_tilde_test
 
 
 

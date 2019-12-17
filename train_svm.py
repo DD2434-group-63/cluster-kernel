@@ -5,7 +5,7 @@ import numpy as np
 from sklearn.svm import SVC
 from sklearn import metrics
 from kernel_functions import *
-from tsvm2 import *
+
 
 
 # Hyperparameters
@@ -65,20 +65,35 @@ def main():
     test_targets = test_targets[random_perm]
     gamma = 1
 
+    K_labeled,K_unlabeled, K_test = cluster_kernel_extension(train_inputs, train_unlabeled, test_inputs, gamma, "linear", 1)
+
+
 
     # Run SVM
     if args.type_kernel == "normal":
-
         svm = SVC(C=1000, kernel="rbf")
+        svm.fit(train_inputs, train_targets)
     else:
-        svm = SVC(C=1000, kernel=lambda X_labeled, T: cluster_kernel_extension(X_labeled,train_unlabeled,gamma,'linear',1))
-    svm.fit(train_inputs, train_targets)
+        svm = SVC(C=1000, kernel="precomputed")
+        svm.fit(K_labeled.T, train_targets.T)
+
+
+    print("finish")
+    print("test_input shape:", test_inputs.shape)
+    print("test_target shape:", test_targets.shape)
+    print("train_input:", train_inputs.shape)
 
     # Test SVM
-    test_predictions = svm.predict(test_inputs)
+    if args.type_kernel == "normal":
+        test_predictions = svm.predict(test_inputs)
+    else:
+        print("K_test shape",K_test.shape)
+        test_predictions = svm.predict(K_test.T)
+    print("start")
 
     # performance
     accuracy = compute_accuracy(test_predictions, test_targets)
+
     f1_score = metrics.f1_score(test_targets, test_predictions, average='macro')
     print("Accuracy = ", accuracy)
     print("F1 score = ", f1_score)
