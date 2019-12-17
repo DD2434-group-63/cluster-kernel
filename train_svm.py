@@ -63,20 +63,11 @@ def main():
 
 
     # Run SVM
-    # svm = SVC(C=1000, kernel="rbf")
-    # svm.fit(train_inputs, train_targets)
+    svm = SVC(C=1000, kernel="rbf")
+    svm.fit(train_inputs, train_targets)
 
     # Test SVM
-    # test_predictions = svm.predict(test_inputs)
-
-
-    # Run TSVM
-    model = TSVM()
-    model.initial('rbf')
-    model.train(train_inputs, train_targets, train_unlabeled)
-
-    # Test TSVM
-    test_predictions = model.predict(test_inputs)
+    test_predictions = svm.predict(test_inputs)
 
     # performance
     accuracy = compute_accuracy(test_predictions, test_targets)

@@ -15,5 +15,10 @@ def main():
     targets_train = targets_train.astype(int)
     targets_test = targets_test.astype(int)
 
+    targets_train[targets_train >= 0 && targets_train <= 4] = 0
+    targets_train[targets_train >= 5 && targets_train <= 9] = 1
+
+
+
 if __name__ == "__main__":
     main()

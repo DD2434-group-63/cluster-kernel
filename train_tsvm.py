@@ -2,8 +2,13 @@ import argparse
 import os
 
 import numpy as np
-from tsvm import SKTSVM
+from sklearn.svm import SVC
 from sklearn import metrics
+from tsvm2 import *
+
+# Hyperparameters
+C = 1.0
+kernel = "rbf"
 
 
 def compute_accuracy(predictions, targets):
@@ -40,38 +45,36 @@ def main():
         test_classA = np.load(test_classA_path)
         test_classB = np.load(test_classB_path)
 
-    # Stack test samples
-    # Labels are 0 and 1
-    test_inputs = np.concatenate((test_classA, test_classB))
-    test_targets = np.concatenate((np.ones(test_classA.shape[0], dtype=np.int8), np.zeros(test_classB.shape[0], dtype=np.int8)))
-    N_test = test_inputs.shape[0]
-    random_perm = np.random.permutation(N_test)
-    test_inputs = test_inputs[random_perm, :]
-    test_targets = test_targets[random_perm]
-
-    # Stack training samples (labeled and unlabeled)
-    # Test samples are considered as unlabeled samples
-    # Labeled samples get labels 0 and 1, unlabeled gets label -1
-    train_inputs = np.concatenate((train_classA, train_classB, train_unlabeled, test_inputs))
-    train_targets = np.concatenate((np.ones(train_classA.shape[0], dtype=np.int8),
-                                    np.zeros(train_classB.shape[0], dtype=np.int8),
-                                    -np.ones(train_unlabeled.shape[0], dtype=np.int8),
-                                    -np.ones(test_inputs.shape[0], dtype=np.int8)))
+    # Stack training samples
+    train_inputs = np.concatenate((train_classA, train_classB))
+    train_targets = np.concatenate((np.ones(train_classA.shape[0]), -np.ones(train_classB.shape[0])))
     N = train_inputs.shape[0]
     random_perm = np.random.permutation(N)
     train_inputs = train_inputs[random_perm, :]
     train_targets = train_targets[random_perm]
 
-    # Run transductive svm
-    tsvm = SKTSVM(kernel="rbf", C=1.0, gamma=1.65, lamU=10.0, probability=False)
-    tsvm.fit(train_inputs, train_targets)
+    # Stack test samples
+    test_inputs = np.concatenate((test_classA, test_classB))
+    test_targets = np.concatenate((np.ones(test_classA.shape[0]), -np.ones(test_classB.shape[0])))
+    N_test = test_inputs.shape[0]
+    random_perm = np.random.permutation(N_test)
+    test_inputs = test_inputs[random_perm, :]
+    test_targets = test_targets[random_perm]
 
-    # Test trained tsvm
-    test_predictions = tsvm.predict(test_inputs)
+    # Run TSVM
+    model = TSVM()
+    model.initial('rbf')
+    model.train(train_inputs, train_targets, train_unlabeled)
+
+    # Test TSVM
+    test_predictions = model.predict(test_inputs)
+
+    # performance
     accuracy = compute_accuracy(test_predictions, test_targets)
     f1_score = metrics.f1_score(test_targets, test_predictions, average='macro')
     print("Accuracy = ", accuracy)
     print("F1 score = ", f1_score)
+
 
 
 if __name__ == "__main__":
