@@ -30,6 +30,8 @@ def hdf5(path, data_key = "data", target_key = "target", flatten = True):
 
 
 X_tr, y_tr, X_te, y_te = hdf5("data/preprocess_USPS/input/usps.h5")
+X_tr = X_tr[0: 2000]
+y_tr = y_tr[0: 2000]
 #print(X_tr.shape) 7291x256
 #print(X_te.shape) 2007
 
@@ -54,14 +56,15 @@ def visualize():
 
 def divide_data():
     """
-    select 2000 samples for training and divide them into two classes
+    select first 40 samples for training and divide them into two classes
     classA: digits 0 to 4
     classB: digits 5 to 9
     the rest of the training set remains unlabeled
 
     label also the entire test set
     """
-    index = random.sample(range(len(X_tr)), 2000)
+
+    index = random.sample(range(len(X_tr)), 40)
     train_classA = [] # 1
     train_classB = [] # -1
     train_unlabeled = []

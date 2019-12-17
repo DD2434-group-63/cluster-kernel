@@ -18,7 +18,7 @@ class TSVM(object):
         '''
         self.Cl, self.Cu = 1.5, 0.001
         self.kernel = kernel
-        self.clf = svm.SVC(C=1.5, kernel=self.kernel)
+        self.clf = svm.SVC(C=1.5, kernel=self.kernel, gamma=0.02)
 
     def load(self, model_path='./TSVM.model'):
         '''

@@ -4,7 +4,7 @@ import os
 import numpy as np
 from sklearn.svm import SVC
 from sklearn import metrics
-from tsvm2 import *
+from tsvm import *
 
 # Hyperparameters
 C = 1.0
