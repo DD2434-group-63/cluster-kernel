@@ -4,6 +4,7 @@ import os
 import numpy as np
 from sklearn.svm import SVC
 from sklearn import metrics
+from tsvm2 import *
 
 # Hyperparameters
 C = 1.0
@@ -60,16 +61,29 @@ def main():
     test_inputs = test_inputs[random_perm, :]
     test_targets = test_targets[random_perm]
 
+
     # Run SVM
-    svm = SVC(C=1000, kernel="rbf")
-    svm.fit(train_inputs, train_targets)
+    # svm = SVC(C=1000, kernel="rbf")
+    # svm.fit(train_inputs, train_targets)
 
     # Test SVM
-    test_predictions = svm.predict(test_inputs)
+    # test_predictions = svm.predict(test_inputs)
+
+
+    # Run TSVM
+    model = TSVM()
+    model.initial('rbf')
+    model.train(train_inputs, train_targets, train_unlabeled)
+
+    # Test TSVM
+    test_predictions = model.predict(test_inputs)
+
+    # performance
     accuracy = compute_accuracy(test_predictions, test_targets)
     f1_score = metrics.f1_score(test_targets, test_predictions, average='macro')
     print("Accuracy = ", accuracy)
     print("F1 score = ", f1_score)
+
 
 
 if __name__ == "__main__":
