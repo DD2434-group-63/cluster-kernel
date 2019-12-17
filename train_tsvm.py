@@ -61,6 +61,10 @@ def main():
     test_inputs = test_inputs[random_perm, :]
     test_targets = test_targets[random_perm]
 
+    print(len(train_inputs))
+    print(len(train_unlabeled))
+    print(len(test_targets))
+
     # Run TSVM
     model = TSVM()
     model.initial('rbf')
