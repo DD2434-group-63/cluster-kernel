@@ -109,13 +109,6 @@ def cluster_kernel_extension(X_labeled, X_unlabeled, X_test, gamma, kernel, t):
     K = rbf_kernel(X)
     print(K.shape)
 
-    """
-    # affitnity matrix
-    for i in range(X.shape[0]):
-        for j in range(X.shape[0]):
-            K[i,j] = rbf_kernel([X[i,:]], [X[j, :]], gamma)
-    """
-
     # Set diagonal to one
     np.fill_diagonal(K, 1)
 
@@ -162,7 +155,7 @@ def cluster_kernel_extension(X_labeled, X_unlabeled, X_test, gamma, kernel, t):
     # Filter K_tilde just for the labeled data set.
     K_tilde_labeled = K_tilde[0:X_labeled.shape[0],0:X_labeled.shape[0]]
 
-    K_tilde_test = K_tilde[X_labeled.shape[0]:X_labeled.shape[0]*2 , 0:X_test.shape[0]]
+    K_tilde_test = K_tilde[X_labeled.shape[0]:X_labeled.shape[0] + X_test.shape[0] , 0:X_labeled.shape[0]]
 
     K_tilde_unlabeled = K_tilde[X_labeled.shape[0] + X_unlabeled.shape[0]:
                            X_labeled.shape[0] + X_unlabeled.shape[0] + X_test.shape[0],
