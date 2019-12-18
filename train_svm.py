@@ -6,8 +6,6 @@ from sklearn.svm import SVC
 from sklearn import metrics
 from kernel_functions import *
 
-
-
 # Hyperparameters
 C = 1.0
 kernel = "rbf"
@@ -64,18 +62,15 @@ def main():
     random_perm = np.random.permutation(N_test)
     test_inputs = test_inputs[random_perm, :]
     test_targets = test_targets[random_perm]
-    gamma = 1
-
-    K_labeled,K_unlabeled, K_test = cluster_kernel_extension(train_inputs, train_unlabeled, test_inputs, gamma, args.type_kernel, 1)
-
-
 
     # Run SVM
     if args.type_kernel == "normal":
-        svm = SVC(C=1000, kernel="rbf")
+        svm = SVC(C=C, kernel="rbf")
         svm.fit(train_inputs, train_targets)
     else:
-        svm = SVC(C=1000, kernel="precomputed")
+        gamma = 1/(2 * 0.55 ** 2)
+        K_labeled, K_unlabeled, K_test = cluster_kernel_extension(train_inputs, train_unlabeled[0:40, :], test_inputs, gamma, args.type_kernel, 1)
+        svm = SVC(C=C, kernel="precomputed")
         svm.fit(K_labeled.T, train_targets.T)
 
     print("train_input shape:", train_inputs.shape)
@@ -93,7 +88,6 @@ def main():
     f1_score = metrics.f1_score(test_targets, test_predictions, average='macro')
     print("Accuracy = ", accuracy)
     print("F1 score = ", f1_score)
-
 
 
 if __name__ == "__main__":

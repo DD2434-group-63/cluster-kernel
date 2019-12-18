@@ -21,8 +21,10 @@ def kernel_rbf(x1, x2, sigma):
 #### -------------- -------------- -------------- --------------
 # The Transfer functions for Lambda
 
+
 def kernel_linear(Lambda):
     return Lambda
+
 
 def kernel_step(Lambda, lambda_cut):
     Lambda_tilde = np.zeros(Lambda.shape)
@@ -33,7 +35,8 @@ def kernel_step(Lambda, lambda_cut):
             Lambda_tilde[i] = 0
     return Lambda_tilde
 
-def kernel_linear_step(Lambda,lambda_cut):
+
+def kernel_linear_step(Lambda, lambda_cut):
     Lambda_tilde = np.zeros(Lambda.shape)
     for i in range(len(Lambda)):
         if Lambda[i] >= lambda_cut:
@@ -42,9 +45,10 @@ def kernel_linear_step(Lambda,lambda_cut):
             Lambda_tilde[i] = 0
     return Lambda_tilde
 
-def kernel_poly(Lambda,t):
 
-    Lambda_tilde = np.power(Lambda,t)
+def kernel_poly(Lambda, t):
+
+    Lambda_tilde = np.power(Lambda, t)
     return Lambda_tilde
 
 
@@ -65,14 +69,13 @@ def clustring_kernel(X, gamma, k):
 
     # D matrix
     D = np.zeros(K.shape, int)
-    for i,row in enumerate(K):
+    for i, row in enumerate(K):
         row_sum = np.sum(row)
-        D[i,i] = row_sum
-
+        D[i, i] = row_sum
 
     # matrix L
-    sqrt_D = np.power(D,(-0.5))
-    L = np.dot(sqrt_D,K).dot(sqrt_D)
+    sqrt_D = np.power(D, (-0.5))
+    L = np.dot(sqrt_D, K).dot(sqrt_D)
 
     _, V = np.linalg.eig(L)
     # take only k eigenvectors
@@ -82,7 +85,7 @@ def clustring_kernel(X, gamma, k):
     for i in range(len(V)):
         s = 0
         for j in range(k):
-            s+= np.square(V[i,j])
+            s += np.square(V[i, j])
         S.append(s)
 
         for j in range(k):
@@ -91,61 +94,60 @@ def clustring_kernel(X, gamma, k):
     return V
 
 
-
-
-
 def cluster_kernel_extension(X_labeled, X_unlabeled, X_test, gamma, kernel, t):
 
     """
     :param X_labeled:  The labaled data points
     :param X_unlabeled: The unlabeled data points
+    :param X_test: The test data points
     :param gamma: The RBF parameters
     :param kernel: The specific transfer function kernel to calculate the lambda tilde
     :return: The The kernel phi(X)
 
     """
-    X = np.concatenate((X_labeled,X_test,X_unlabeled))
+    X = np.concatenate((X_labeled, X_test, X_unlabeled))
 
-    K = rbf_kernel(X)
-    print(K.shape)
+    K = rbf_kernel(X, gamma=gamma)
 
     # Set diagonal to one
     np.fill_diagonal(K, 1)
 
     # D matrix
-    D = np.zeros(K.shape, int)
-    sqrt_D = D
+    sqrt_D = np.zeros(K.shape)
     for i, row in enumerate(K):
         row_sum = np.sum(row)
-        D[i, i] = row_sum
-        sqrt_D[i,i] = np.power(row_sum,(-0.5))
+        sqrt_D[i, i] = np.power(row_sum, (-0.5))
 
     # matrix L
-    L = np.matmul(np.matmul(sqrt_D, K),sqrt_D)
-
+    print("Computing L")
+    L = np.matmul(np.matmul(sqrt_D, K), sqrt_D)
 
     # eigendecomposition of L
     # Lambda: eigenvalues, U: eigenvectors
-
+    print("Computing eig")
     Lambda, U = np.linalg.eig(L)
 
     lambda_cut = max(Lambda)
 
     # call kernel
-    if kernel  == "linear":
+    if kernel == "linear":
         Lambda_tilde = kernel_linear(Lambda)
     elif kernel == "step":
-        Lambda_tilde = kernel_step(Lambda,lambda_cut)
+        Lambda_tilde = kernel_step(Lambda, lambda_cut)
     elif kernel == "lin_step":
         Lambda_tilde = kernel_linear_step(Lambda, lambda_cut)
     else:
         Lambda_tilde = kernel_poly(Lambda, t)
 
-    L_tilde = U*(Lambda_tilde)*(U.T)
+    print("Computing L_tilde")
+    L_tilde = np.matmul(U * Lambda_tilde, U.T)
+    print(L_tilde)
+    print(L)
+    exit()
 
     # compute D_tilde
     D_tilde = np.zeros(L_tilde.shape)
-    np.fill_diagonal(D_tilde, 1/(L_tilde.diagonal() + sys.float_info.min))
+    np.fill_diagonal(D_tilde, 1 / (L_tilde.diagonal() + sys.float_info.min))
 
     # compute K_tilde
     sqrt_D_tilde = np.zeros(D_tilde.shape)
@@ -153,25 +155,18 @@ def cluster_kernel_extension(X_labeled, X_unlabeled, X_test, gamma, kernel, t):
     K_tilde = np.dot(sqrt_D_tilde, L_tilde).dot(sqrt_D_tilde)
 
     # Filter K_tilde just for the labeled data set.
-    K_tilde_labeled = K_tilde[0:X_labeled.shape[0],0:X_labeled.shape[0]]
+    K_tilde_labeled = K_tilde[0:X_labeled.shape[0], 0:X_labeled.shape[0]]
 
-    K_tilde_test = K_tilde[X_labeled.shape[0]:X_labeled.shape[0] + X_test.shape[0] , 0:X_labeled.shape[0]]
+    K_tilde_test = K_tilde[X_labeled.shape[0]:X_labeled.shape[0] + X_test.shape[0], 0:X_labeled.shape[0]]
 
     K_tilde_unlabeled = K_tilde[X_labeled.shape[0] + X_unlabeled.shape[0]:
-                           X_labeled.shape[0] + X_unlabeled.shape[0] + X_test.shape[0],
-                   X_labeled.shape[0] + X_unlabeled.shape[0]:
-                   X_labeled.shape[0] + X_unlabeled.shape[0] + X_test.shape[0]]
+                                X_labeled.shape[0] + X_unlabeled.shape[0] + X_test.shape[0],
+                                X_labeled.shape[0] + X_unlabeled.shape[0]:
+                                X_labeled.shape[0] + X_unlabeled.shape[0] + X_test.shape[0]]
 
     print("passed the cluster kernels")
+
+    print(K)
+    print(K_tilde)
+
     return K_tilde_labeled, K_tilde_unlabeled, K_tilde_test
-
-
-
-
-
-
-
-
-
-
-
