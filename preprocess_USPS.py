@@ -9,6 +9,9 @@ import h5py
 from functools import reduce
 #print(os.listdir("input"))
 
+np.random.seed(8)
+random.seed(8)
+
 def hdf5(path, data_key = "data", target_key = "target", flatten = True):
     """
         loads data from hdf5:

@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import pickle
 from functools import reduce
 
+np.random.seed(8)
+
 
 def unpickle(file):
     """load the cifar-10 data"""

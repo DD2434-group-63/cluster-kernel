@@ -8,6 +8,8 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 WINDOWS_IND = 4
 MAC_IND = 5
 
+np.random.seed(8)
+
 if __name__ == "__main__":
 
     argparser = argparse.ArgumentParser()
