@@ -20,7 +20,7 @@ if __name__ == "__main__":
     args = argparser.parse_args()
 
     assert args.n_labeled is not None or args.n_unlabeled is not None, "One of n_labeled or n_unlabeled must be specified."
-    assert args.n_labeled is None or args.n_unlabeled is None, "ONly one of n_labeled or n_unlabeled can be specified."
+    assert args.n_labeled is None or args.n_unlabeled is None, "Only one of n_labeled or n_unlabeled can be specified."
 
     # If save path does not exist, create it
     directory = os.path.dirname(args.save_path)
@@ -57,7 +57,7 @@ if __name__ == "__main__":
 
     # Randomly select specified number of unlabeled samples - same number for each class
     if args.n_labeled is not None:
-        args.n_unlabeled = train_inputs.shape[0] - args.n_labeled
+        args.n_unlabeled = train_classA.shape[0] + train_classB.shape[0] - args.n_labeled
 
     random_indices = np.random.choice(train_classA.shape[0], int(args.n_unlabeled / 2), replace=False)
     train_unlabeled_classA = train_classA[random_indices, :]
