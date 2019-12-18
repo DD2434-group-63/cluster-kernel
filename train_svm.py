@@ -11,7 +11,7 @@ from kernel_functions import *
 np.random.seed(8)
 
 # Hyperparameters
-C = 3.0
+C = 10
 kernel = "rbf"
 GAMMA = 1 / (2 * 5 ** 2)
 
