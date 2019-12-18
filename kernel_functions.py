@@ -149,13 +149,13 @@ def cluster_kernel_extension(X_labeled, X_unlabeled, X_test, gamma, kernel, t):
     if kernel == "linear":
         Lambda_tilde = kernel_linear(Lambda)
     elif kernel == "step":
-        Lambda_tilde = kernel_step(Lambda, k=100)
+        Lambda_tilde = kernel_step(Lambda, k=50)
     elif kernel == "lin_step":
         Lambda_tilde = kernel_linear_step(Lambda)
     elif kernel == "poly":
         Lambda_tilde = kernel_poly(Lambda, t)
     elif kernel == "poly_step":
-        Lambda_tilde = kernel_poly_step(Lambda, r=10, p=2, q=2)
+        Lambda_tilde = kernel_poly_step(Lambda, r=50, p=2, q=2)
 
     print("number cluster k :", np.count_nonzero(Lambda_tilde))
     # L_tilde = U * Lambda_tilde * U.T
