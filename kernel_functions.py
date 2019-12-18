@@ -2,6 +2,8 @@ import numpy as np
 from sklearn.metrics.pairwise import rbf_kernel
 import sys
 
+np.random.seed(8)
+
 """
 def kernel_linear(x1, x2):
     return np.dot(x1, x2.T)

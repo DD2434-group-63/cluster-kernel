@@ -6,6 +6,8 @@ from sklearn.svm import SVC
 from sklearn import metrics
 from kernel_functions import *
 
+np.random.seed(8)
+
 # Hyperparameters
 C = 3.0
 kernel = "rbf"
