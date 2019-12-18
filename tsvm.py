@@ -18,7 +18,7 @@ class TSVM(object):
         '''
         self.Cl, self.Cu = 1.5, 0.001
         self.kernel = kernel
-        self.clf = svm.SVC(C=1.5, kernel=self.kernel, gamma=0.02)
+        self.clf = svm.SVC(C=1.5, kernel=self.kernel)
 
     def load(self, model_path='./TSVM.model'):
         '''
@@ -118,7 +118,6 @@ class TSVM(object):
 
 """
 if __name__ == '__main__':
-
     model = TSVM()
     model.initial('rbf')
     model.train(train_labeled, train_target, train_unlabeled)
