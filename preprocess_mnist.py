@@ -10,12 +10,9 @@ def main():
 
     argparser = argparse.ArgumentParser()
     argparser.add_argument("save_path", type=str, help="Path to save preprocessed data to.")
-    argparser.add_argument("--n_unlabeled", type=int, default=None, help="Number of points to be unlabeled. Remaining points will be labeled.")
-    argparser.add_argument("--n_labeled", type=int, default=None, help="Number of points to be labeled. Remaining points will be unlabeled.")
+    argparser.add_argument("n_unlabeled", type=int, default=1960, help="Number of points to be unlabeled. Remaining points will be labeled.")
+    argparser.add_argument("n_labeled", type=int, default=40, help="Number of points to be labeled. Remaining points will be unlabeled.")
     args = argparser.parse_args()
-
-    assert args.n_labeled is not None or args.n_unlabeled is not None, "One of n_labeled or n_unlabeled must be specified."
-    assert args.n_labeled is None or args.n_unlabeled is None, "ONly one of n_labeled or n_unlabeled can be specified."
 
     # If save path does not exist, create it
     directory = os.path.dirname(args.save_path)
@@ -40,9 +37,12 @@ def main():
     test_targets[test_zero_mask] = -1
     test_targets[np.logical_not(test_zero_mask)] = 1
 
+    # Take only number of training samples needed
+    total_n_train = args.n_unlabeled + args.n_labeled
+    train_inputs = train_inputs[0:total_n_train, :]
+    train_targets = train_targets[0:total_n_train]
+
     # Randomly select specified number of unlabeled samples
-    if args.n_labeled is not None:
-        args.n_unlabeled = train_inputs.shape[0] - args.n_labeled
     random_indices = np.random.choice(train_inputs.shape[0], args.n_unlabeled, replace=False)
     train_unlabeled = train_inputs[random_indices, :]
     mask = np.ones(train_inputs.shape[0], dtype=bool)

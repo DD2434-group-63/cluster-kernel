@@ -7,7 +7,7 @@ from sklearn import metrics
 from kernel_functions import *
 
 # Hyperparameters
-C = 1.0
+C = 3.0
 kernel = "rbf"
 
 
