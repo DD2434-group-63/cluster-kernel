@@ -64,10 +64,7 @@ def main():
     random_perm = np.random.permutation(N_test)
     test_inputs = test_inputs[random_perm, :]
     test_targets = test_targets[random_perm]
-    gamma = 1
-
-    K_labeled,K_unlabeled, K_test = cluster_kernel_extension(train_inputs, train_unlabeled, test_inputs, gamma, args.type_kernel, 1)
-
+    gamma = 1/(2*5**2)
 
 
     # Run SVM
@@ -75,6 +72,10 @@ def main():
         svm = SVC(C=1000, kernel="rbf")
         svm.fit(train_inputs, train_targets)
     else:
+        K_labeled, K_unlabeled, K_test = cluster_kernel_extension(train_inputs,
+                                                                  train_unlabeled[0:40],
+                                                                  test_inputs,
+                                                                  gamma, args.type_kernel, 1)
         svm = SVC(C=1000, kernel="precomputed")
         svm.fit(K_labeled.T, train_targets.T)
 

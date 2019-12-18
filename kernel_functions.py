@@ -107,17 +107,17 @@ def cluster_kernel_extension(X_labeled, X_unlabeled, X_test, gamma, kernel, t):
     X = np.concatenate((X_labeled,X_test,X_unlabeled))
 
     K = rbf_kernel(X)
-    print(K.shape)
+
+    print("Cluster kernel start")
+    print("K shape: ",K.shape)
 
     # Set diagonal to one
     np.fill_diagonal(K, 1)
 
     # D matrix
-    D = np.zeros(K.shape, int)
-    sqrt_D = D
+    sqrt_D = np.zeros(K.shape)
     for i, row in enumerate(K):
         row_sum = np.sum(row)
-        D[i, i] = row_sum
         sqrt_D[i,i] = np.power(row_sum,(-0.5))
 
     # matrix L
@@ -129,9 +129,12 @@ def cluster_kernel_extension(X_labeled, X_unlabeled, X_test, gamma, kernel, t):
 
     Lambda, U = np.linalg.eig(L)
 
-    lambda_cut = max(Lambda)
+    Lambda_ind = Lambda.argsort()[-2:][::-1]
+
+    lambda_cut = Lambda[Lambda_ind[1]]
 
     # call kernel
+
     if kernel  == "linear":
         Lambda_tilde = kernel_linear(Lambda)
     elif kernel == "step":
@@ -141,7 +144,11 @@ def cluster_kernel_extension(X_labeled, X_unlabeled, X_test, gamma, kernel, t):
     else:
         Lambda_tilde = kernel_poly(Lambda, t)
 
-    L_tilde = U*(Lambda_tilde)*(U.T)
+
+
+    print("number cluster k :", np.count_nonzero(Lambda_tilde))
+    #L_tilde = U * Lambda_tilde * U.T
+    L_tilde = np.matmul(U * Lambda_tilde,U.T)
 
     # compute D_tilde
     D_tilde = np.zeros(L_tilde.shape)
@@ -152,15 +159,15 @@ def cluster_kernel_extension(X_labeled, X_unlabeled, X_test, gamma, kernel, t):
     np.fill_diagonal(sqrt_D_tilde, np.power(D_tilde.diagonal(), 0.5))
     K_tilde = np.dot(sqrt_D_tilde, L_tilde).dot(sqrt_D_tilde)
 
-    # Filter K_tilde just for the labeled data set.
+    # Filter K_tilde just for the labeled and test data set.
     K_tilde_labeled = K_tilde[0:X_labeled.shape[0],0:X_labeled.shape[0]]
 
     K_tilde_test = K_tilde[X_labeled.shape[0]:X_labeled.shape[0] + X_test.shape[0] , 0:X_labeled.shape[0]]
 
     K_tilde_unlabeled = K_tilde[X_labeled.shape[0] + X_unlabeled.shape[0]:
-                           X_labeled.shape[0] + X_unlabeled.shape[0] + X_test.shape[0],
-                   X_labeled.shape[0] + X_unlabeled.shape[0]:
-                   X_labeled.shape[0] + X_unlabeled.shape[0] + X_test.shape[0]]
+                                X_labeled.shape[0] + X_unlabeled.shape[0] + X_test.shape[0],
+                        X_labeled.shape[0] + X_unlabeled.shape[0]:
+                        X_labeled.shape[0] + X_unlabeled.shape[0] + X_test.shape[0]]
 
     print("passed the cluster kernels")
     return K_tilde_labeled, K_tilde_unlabeled, K_tilde_test
