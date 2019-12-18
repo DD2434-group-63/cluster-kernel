@@ -68,7 +68,7 @@ def main():
         svm = SVC(C=C, kernel="rbf")
         svm.fit(train_inputs, train_targets)
     else:
-        gamma = 1/(2 * 0.55 ** 2)
+        gamma = 1 / (2 * 5 ** 2)
         K_labeled, K_unlabeled, K_test = cluster_kernel_extension(train_inputs, train_unlabeled[0:40, :], test_inputs, gamma, args.type_kernel, 1)
         svm = SVC(C=C, kernel="precomputed")
         svm.fit(K_labeled.T, train_targets.T)

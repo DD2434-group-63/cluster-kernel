@@ -141,9 +141,6 @@ def cluster_kernel_extension(X_labeled, X_unlabeled, X_test, gamma, kernel, t):
 
     print("Computing L_tilde")
     L_tilde = np.matmul(U * Lambda_tilde, U.T)
-    print(L_tilde)
-    print(L)
-    exit()
 
     # compute D_tilde
     D_tilde = np.zeros(L_tilde.shape)
