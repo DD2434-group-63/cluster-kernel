@@ -43,7 +43,6 @@ def load_cifar_10_data(data_dir, negatives=False):
     cifar_train_filenames = np.array(cifar_train_filenames)
     cifar_train_labels = np.array(cifar_train_labels)
 
-
     cifar_test_data_dict = unpickle(data_dir + "/test_batch")
     cifar_test_data = cifar_test_data_dict[b'data']
     cifar_test_filenames = cifar_test_data_dict[b'filenames']
@@ -59,9 +58,6 @@ def load_cifar_10_data(data_dir, negatives=False):
 
     # call select_data
     train_classA, train_classB = select_data(cifar_train_data, cifar_train_filenames, cifar_train_labels,cifar_test_data, cifar_test_filenames, cifar_test_labels, cifar_label_names)
-
-    #return cifar_train_data, cifar_train_filenames, cifar_train_labels, \
-    #    cifar_test_data, cifar_test_filenames, cifar_test_labels, cifar_label_names
     return train_classA, train_classB
 
 def select_data(cifar_train_data, cifar_train_filenames, cifar_train_labels,cifar_test_data, cifar_test_filenames, cifar_test_labels, cifar_label_names):
@@ -75,15 +71,26 @@ def select_data(cifar_train_data, cifar_train_filenames, cifar_train_labels,cifa
     Test labels:  (10000,)                  Test labels:  (100,)
     Label names:  (10,)                     Label names:  (2,)
     """
+    # set parameters
+    ##########
+    n_train = 2000
+    n_labeled = 40
+    n_test = 2000
+    ##########
+
     classA = []
     classB = []
+    n_class = int((n_train+n_test)/2)
+    n_class_train = int(n_train/2)
+    n_class_labeled = int(n_labeled/2)
+    n_class_test = int(n_test/2)
     # use only class 1 and class 2
     for i in range(len(cifar_train_labels)):
-        if cifar_train_labels[i] == 0 and len(classA) < 300:
+        if cifar_train_labels[i] == 0 and len(classA) < n_class:
             classA.append(rgb2gray(cifar_train_data[i]))
-        elif cifar_train_labels[i] == 1 and len(classB) < 300:
+        elif cifar_train_labels[i] == 1 and len(classB) < n_class:
             classB.append(rgb2gray(cifar_train_data[i]))
-        elif len(classA)==300 and len(classB)==300:
+        elif len(classA)==n_class and len(classB)==n_class:
             break
     classA = np.asarray(classA)
     classB = np.asarray(classB)
@@ -94,14 +101,14 @@ def select_data(cifar_train_data, cifar_train_filenames, cifar_train_labels,cifa
     classA = classA.reshape(classA.shape[0], reduce(lambda a, b: a * b, classA.shape[1:]))
     classB = classB.reshape(classB.shape[0], reduce(lambda a, b: a * b, classB.shape[1:]))
 
-    train_classA = classA[:50,:]
-    train_classB = classB[:50,:]
-    train_unlabeled_classA = classA[50:250,:]
-    train_unlabeled_classB = classA[50:250,:]
+    train_classA = classA[:n_class_labeled,:]
+    train_classB = classB[:n_class_labeled,:]
+    train_unlabeled_classA = classA[n_class_labeled:n_class_train,:]
+    train_unlabeled_classB = classA[n_class_labeled:n_class_train,:]
     train_unlabeled = np.vstack([train_unlabeled_classA, train_unlabeled_classB])
     np.random.shuffle(train_unlabeled)
-    test_classA = classA[250:,:]
-    test_classB = classB[250:,:]
+    test_classA = classA[n_class_test:,:]
+    test_classB = classB[n_class_test:,:]
 
     path = "data/preprocess_cifar/"
     np.save(path+'train_classA.npy', train_classA)
