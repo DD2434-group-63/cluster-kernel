@@ -13,7 +13,7 @@ np.random.seed(8)
 # Hyperparameters
 C = 10
 kernel = "rbf"
-GAMMA = 1 / (2 * 5 ** 2)
+GAMMA = 0.06
 
 
 def compute_accuracy(predictions, targets):
@@ -27,7 +27,7 @@ def compute_K_test(K_tilde_labeled, K_labeled, train_inputs, test_inputs, GAMMA)
     """
     Compute kernel of test points as linear combination of training points.
     """
-    V = rbf_kernel(test_inputs, train_inputs, GAMMA=GAMMA)
+    V = rbf_kernel(test_inputs, train_inputs, gamma=GAMMA)
     K_tilde_test = np.matmul(K_tilde_labeled, np.matmul(np.linalg.inv(K_labeled), V.T)).T
 
     return K_tilde_test
@@ -81,11 +81,11 @@ def main():
 
     # Run SVM
     if args.type_kernel == "normal":  # normal version
-        svm = SVC(C=C, kernel="rbf")
+        svm = SVC(C=C, kernel="rbf", gamma=GAMMA)
         svm.fit(train_inputs, train_targets)
 
     elif args.type_kernel == "basic_cluster":  # basic cluster kernel version
-        svm = SVC(C=C, kernel="rbf")
+        svm = SVC(C=C, kernel="rbf", gamma=GAMMA)
         train_inputs_modified, test_inputs_modified = clustring_kernel(train_inputs, train_unlabeled[0:40, :], test_inputs, GAMMA, k=2)
         svm.fit(train_inputs_modified, train_targets)
 

@@ -4,6 +4,7 @@ import argparse
 import numpy as np
 from sklearn.datasets import fetch_20newsgroups
 from sklearn.feature_extraction.text import TfidfVectorizer
+import scipy.sparse as ss
 
 WINDOWS_IND = 4
 MAC_IND = 5
@@ -49,19 +50,28 @@ if __name__ == "__main__":
     test_inputs = test_inputs[samples_to_use_mask, :]
     test_targets = test_targets[samples_to_use_mask]
 
-    # Randomly select specified number of unlabeled samples
-    if args.n_labeled is not None:
-        args.n_unlabeled = train_inputs.shape[0] - args.n_labeled
-    random_indices = np.random.choice(train_inputs.shape[0], args.n_unlabeled, replace=False)
-    train_unlabeled = train_inputs[random_indices, :]
-    mask = np.ones(train_inputs.shape[0], dtype=bool)
-    mask[random_indices] = False
-    train_inputs = train_inputs[mask]
-    train_targets = train_targets[mask]
-
     # Extract inputs of each class
     train_classA = train_inputs[train_targets == WINDOWS_IND, :]
     train_classB = train_inputs[train_targets == MAC_IND, :]
+    train_classB = train_classB[15:, :]  # throw away 15 first
+
+    # Randomly select specified number of unlabeled samples - same number for each class
+    if args.n_labeled is not None:
+        args.n_unlabeled = train_inputs.shape[0] - args.n_labeled
+
+    random_indices = np.random.choice(train_classA.shape[0], int(args.n_unlabeled / 2), replace=False)
+    train_unlabeled_classA = train_classA[random_indices, :]
+    mask = np.ones(train_classA.shape[0], dtype=bool)
+    mask[random_indices] = False
+    train_classA = train_classA[mask]
+
+    random_indices = np.random.choice(train_classB.shape[0], int(args.n_unlabeled / 2), replace=False)
+    train_unlabeled_classB = train_classB[random_indices, :]
+    mask = np.ones(train_classB.shape[0], dtype=bool)
+    mask[random_indices] = False
+    train_classB = train_classB[mask]
+
+    train_unlabeled = ss.vstack((train_unlabeled_classA, train_unlabeled_classB))
 
     test_classA = test_inputs[test_targets == WINDOWS_IND, :]
     test_classB = test_inputs[test_targets == MAC_IND, :]
