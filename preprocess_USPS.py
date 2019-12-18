@@ -7,6 +7,7 @@ from os import path
 import random
 import h5py
 from functools import reduce
+import itertools
 #print(os.listdir("input"))
 
 np.random.seed(8)
@@ -33,8 +34,31 @@ def hdf5(path, data_key = "data", target_key = "target", flatten = True):
 
 
 X_tr, y_tr, X_te, y_te = hdf5("data/preprocess_USPS/input/usps.h5")
-X_tr = X_tr[0: 2000]
-y_tr = y_tr[0: 2000]
+
+classes = np.empty((10, 0)).tolist()
+for i in range(len(y_tr)):
+    if y_tr[i] == 0 and len(classes[0]) < 200:
+        classes[0].append(X_tr[i])
+    elif y_tr[i] == 1 and len(classes[1]) < 200:
+        classes[1].append(X_tr[i])
+    elif y_tr[i] == 2 and len(classes[2]) < 200:
+        classes[2].append(X_tr[i])
+    elif y_tr[i] == 3 and len(classes[3]) < 200:
+        classes[3].append(X_tr[i])
+    elif y_tr[i] == 4 and len(classes[4]) < 200:
+        classes[4].append(X_tr[i])
+    elif y_tr[i] == 5 and len(classes[5]) < 200:
+        classes[5].append(X_tr[i])
+    elif y_tr[i] == 6 and len(classes[6]) < 200:
+        classes[6].append(X_tr[i])
+    elif y_tr[i] == 7 and len(classes[7]) < 200:
+        classes[7].append(X_tr[i])
+    elif y_tr[i] == 8 and len(classes[8]) < 200:
+        classes[8].append(X_tr[i])
+    elif y_tr[i] == 9 and len(classes[9]) < 200:
+        classes[9].append(X_tr[i])
+
+
 #print(X_tr.shape) 7291x256
 #print(X_te.shape) 2007
 
@@ -66,29 +90,38 @@ def divide_data():
 
     label also the entire test set
     """
+    train_dataA = classes[0]+classes[1]+classes[2]+classes[3]+classes[4]
+    train_dataB = classes[5]+classes[6]+classes[7]+classes[8]+classes[9]
 
-    index = random.sample(range(len(X_tr)), 40)
-    train_classA = [] # 1
-    train_classB = [] # -1
-    train_unlabeled = []
+    train_dataA = np.asarray(train_dataA)
+    train_dataA = np.reshape(train_dataA, (1000, 256))
+    train_dataB = np.asarray(train_dataB)
+    train_dataB = np.reshape(train_dataB, (1000, 256))
+
+    train_classA = np.vstack([train_dataA[0::200, :],train_dataA[1::200, :],train_dataA[2::200, :],train_dataA[3::200, :]]) # 1
+    train_classB = np.vstack([train_dataB[0::200, :],train_dataB[1::200, :],train_dataB[2::200, :],train_dataB[3::200, :]])# -1
+    train_unlabeled = np.vstack([train_dataA[20:1000,:],train_dataB[20:1000,:]])
     test_classA = []
     test_classB = []
     # training set
+
+    # control
+    """
+    for i in range(len(train_classB)):
+        plt.imshow(train_classB[i].reshape([16, 16]), 'gray')
+        plt.show()
+    """
+
+    """
     for i in range(len(y_tr)):
         if i in index:
             if 0 <= y_tr[i] <= 4:
                 train_classA.append(X_tr[i])
-                # control
-                """
-                fig, ax = plt.subplots(1, 1, sharex = True, sharey = True)
-                ax.imshow(X_tr[i].reshape([16, 16]), 'gray')
-                plt.show()
-                print(y_tr[i])
-                """
             else:
                 train_classB.append(X_tr[i])
         else:
             train_unlabeled.append(X_tr[i])
+    """
     # test set
     for i in range(len(y_te)):
         if 0 <= y_te[i] <= 4:
@@ -116,7 +149,7 @@ def main(path):
         pass
     else:
         os.mkdir(path)
-    visualize()
+    #visualize()
     save_data(path+'/')
     return
 
