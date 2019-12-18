@@ -62,28 +62,15 @@ def main():
     random_perm = np.random.permutation(N_test)
     test_inputs = test_inputs[random_perm, :]
     test_targets = test_targets[random_perm]
-<<<<<<< HEAD
-    gamma = 1/(2*5**2)
-
-=======
->>>>>>> ed365298822bb9f01568b9fd040361ec7f957dde
 
     # Run SVM
     if args.type_kernel == "normal":
         svm = SVC(C=C, kernel="rbf")
         svm.fit(train_inputs, train_targets)
     else:
-<<<<<<< HEAD
-        K_labeled, K_unlabeled, K_test = cluster_kernel_extension(train_inputs,
-                                                                  train_unlabeled[0:40],
-                                                                  test_inputs,
-                                                                  gamma, args.type_kernel, 1)
-        svm = SVC(C=1000, kernel="precomputed")
-=======
         gamma = 1 / (2 * 5 ** 2)
         K_labeled, K_unlabeled, K_test = cluster_kernel_extension(train_inputs, train_unlabeled[0:40, :], test_inputs, gamma, args.type_kernel, 1)
         svm = SVC(C=C, kernel="precomputed")
->>>>>>> ed365298822bb9f01568b9fd040361ec7f957dde
         svm.fit(K_labeled.T, train_targets.T)
 
     print("train_input shape:", train_inputs.shape)
