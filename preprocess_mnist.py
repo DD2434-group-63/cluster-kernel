@@ -4,7 +4,7 @@ import argparse
 import numpy as np
 from sklearn.datasets import fetch_openml
 from sklearn.model_selection import train_test_split
-import scipy.sparse as ss
+from sklearn.preprocessing import StandardScaler
 
 np.random.seed(8)
 
@@ -13,8 +13,8 @@ def main():
 
     argparser = argparse.ArgumentParser()
     argparser.add_argument("save_path", type=str, help="Path to save preprocessed data to.")
-    argparser.add_argument("n_unlabeled", type=int, help="Number of points to be unlabeled.")
     argparser.add_argument("n_labeled", type=int, help="Number of points to be labeled.")
+    argparser.add_argument("n_unlabeled", type=int, help="Number of points to be unlabeled.")
     argparser.add_argument("n_test", type=int, help="Number of test points.")
     args = argparser.parse_args()
 
@@ -28,6 +28,11 @@ def main():
 
     # Split into train and test
     train_inputs, test_inputs, train_targets, test_targets = train_test_split(inputs, targets, train_size=60000, test_size=10000)
+
+    # Normalize
+    scaler = StandardScaler()
+    train_inputs = scaler.fit_transform(train_inputs)
+    test_inputs = scaler.transform(test_inputs)
 
     # Replace labels 0-4 with 0 and labels 5-9 with 1
     train_targets = train_targets.astype(int)
