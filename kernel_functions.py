@@ -61,10 +61,10 @@ def kernel_poly(Lambda, t):
 
 
 def kernel_poly_step(Lambda, r, p, q):
-    # Lambda[::-1].sort()
-    Lambda_tilde = np.zeros(Lambda.shape)
+    Lambda_ind = Lambda.argsort()[-r:][::-1]
+    Lambda_tilde = Lambda
     for i in range(len(Lambda)):
-        if i <= r:
+        if i in Lambda_ind:
             Lambda_tilde[i] = np.power(Lambda[i], p)
         else:
             Lambda_tilde[i] = np.power(Lambda[i], q)
@@ -150,7 +150,7 @@ def cluster_kernel_extension(X_labeled, X_unlabeled, X_test, gamma, kernel, t):
     # eigendecomposition of L
     # Lambda: eigenvalues, U: eigenvectors
     print("Computing eig")
-    Lambda, U = np.linalg.eig(L)
+    Lambda, U = np.linalg.eigh(L)
 
     # call kernel
     if kernel == "linear":

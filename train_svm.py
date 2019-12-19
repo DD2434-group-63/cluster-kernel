@@ -13,7 +13,7 @@ np.random.seed(8)
 # Hyperparameters
 C = 10
 kernel = "rbf"
-GAMMA = 1 / 784
+GAMMA = 0.02
 
 
 def compute_accuracy(predictions, targets):
@@ -78,7 +78,8 @@ def main():
     random_perm = np.random.permutation(N_test)
     test_inputs = test_inputs[random_perm, :]
     test_targets = test_targets[random_perm]
-
+    
+    print(">>>>>>>>>>> new test run <<<<<<<<<<<<<<")
     print("train input shape:",train_inputs.shape)
     print("train unlabeled:",train_unlabeled.shape)
     print("test input shape:", test_inputs.shape)
