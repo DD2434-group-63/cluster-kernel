@@ -9,7 +9,8 @@ from tsvm import *
 np.random.seed(8)
 
 # Hyperparameters
-C = 1.0
+C = 5
+gamma = 0.467
 kernel = "rbf"
 
 
@@ -72,7 +73,7 @@ def main():
 
     # Run TSVM
     model = TSVM()
-    model.initial('rbf')
+    model.initial('linear', gamma, C)
     model.train(train_inputs, train_targets, train_unlabeled)
 
     # Test TSVM

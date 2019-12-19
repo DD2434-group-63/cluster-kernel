@@ -9,7 +9,7 @@ class TSVM(object):
     def __init__(self):
         pass
 
-    def initial(self, kernel='linear'):
+    def initial(self, kernel, gamma, C):
         '''
         Initial TSVM
         Parameters
@@ -18,7 +18,9 @@ class TSVM(object):
         '''
         self.Cl, self.Cu = 1.5, 0.001
         self.kernel = kernel
-        self.clf = svm.SVC(C=1.5, kernel=self.kernel)
+        self.gamma = gamma
+        self.C = C
+        self.clf = svm.SVC(C=self.C, kernel=self.kernel, gamma=self.gamma)
 
     def load(self, model_path='./TSVM.model'):
         '''
