@@ -150,7 +150,7 @@ def cluster_kernel_extension(X_labeled, X_unlabeled, X_test, gamma, kernel, t):
     # eigendecomposition of L
     # Lambda: eigenvalues, U: eigenvectors
     print("Computing eig")
-    Lambda, U = np.linalg.eig(L)
+    Lambda, U = np.linalg.eigh(L)
 
     # call kernel
     if kernel == "linear":

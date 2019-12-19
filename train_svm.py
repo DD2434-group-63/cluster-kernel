@@ -11,9 +11,9 @@ from kernel_functions import *
 np.random.seed(8)
 
 # Hyperparameters
-C = 10
+# C = 1000
 kernel = "rbf"
-GAMMA = 1 / 784
+# GAMMA = 1e-5
 
 
 def compute_accuracy(predictions, targets):
@@ -86,15 +86,15 @@ def main():
 
     elif args.type_kernel == "basic_cluster":  # basic cluster kernel version
         svm = SVC(C=C, kernel="rbf", gamma=GAMMA)
-        train_inputs_modified, test_inputs_modified = clustring_kernel(train_inputs, train_unlabeled[0:40, :], test_inputs, GAMMA, k=2)
+        train_inputs_modified, test_inputs_modified = clustring_kernel(train_inputs, train_unlabeled, test_inputs, GAMMA, k=2)
         svm.fit(train_inputs_modified, train_targets)
 
     else:  # extended cluster kernel version
 
         if args.test_points_at_train == 1:
-            K_tilde_labeled, K_test = cluster_kernel_extension(train_inputs, train_unlabeled[0:40, :], test_inputs, GAMMA, args.type_kernel, 1)
+            K_tilde_labeled, K_test = cluster_kernel_extension(train_inputs, train_unlabeled, test_inputs, GAMMA, args.type_kernel, 1)
         else:
-            K_tilde_labeled, K_labeled = cluster_kernel_extension(train_inputs, train_unlabeled[0:40, :], None, GAMMA, args.type_kernel, 1)
+            K_tilde_labeled, K_labeled = cluster_kernel_extension(train_inputs, train_unlabeled, None, GAMMA, args.type_kernel, 1)
 
         svm = SVC(C=C, kernel="precomputed")
         svm.fit(K_tilde_labeled.T, train_targets.T)

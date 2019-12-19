@@ -34,50 +34,66 @@ def main():
     train_inputs = scaler.fit_transform(train_inputs)
     test_inputs = scaler.transform(test_inputs)
 
-    # Replace labels 0-4 with 0 and labels 5-9 with 1
     train_targets = train_targets.astype(int)
     test_targets = test_targets.astype(int)
 
-    train_zero_mask = np.logical_and(train_targets >= 0, train_targets <= 4)
-    train_targets[train_zero_mask] = -1
-    train_targets[np.logical_not(train_zero_mask)] = 1
+    # Split samples into each class
+    train_inputs_by_class = [[] for i in range(10)]
+    for i in range(train_inputs.shape[0]):
+        target = train_targets[i]
+        train_inputs_by_class[target].append(train_inputs[i, :].tolist())
 
-    test_zero_mask = np.logical_and(test_targets >= 0, test_targets <= 4)
-    test_targets[test_zero_mask] = -1
-    test_targets[np.logical_not(test_zero_mask)] = 1
+    test_inputs_by_class = [[] for i in range(10)]
+    for i in range(test_inputs.shape[0]):
+        target = test_targets[i]
+        test_inputs_by_class[target].append(test_inputs[i, :].tolist())
 
-    # Extract inputs of each class, for labeled and unlabeled
-    train_classA = train_inputs[train_targets == -1, :]
-    train_classB = train_inputs[train_targets == 1, :]
+    # Take equal number of each class for train, unlabeled, and test
+    train_inputs = []
+    unlabeled_inputs = []
+    test_inputs = []
+    for c in range(10):
 
-    # Unlabeled
-    random_indices = np.random.choice(train_classA.shape[0], int(args.n_unlabeled / 2), replace=False)
-    train_unlabeled_classA = train_classA[random_indices, :]
-    mask = np.ones(train_classA.shape[0], dtype=bool)
-    mask[random_indices] = False
-    train_classA = train_classA[mask]
+        train_inputs_by_class[c] = np.array(train_inputs_by_class[c])
+        test_inputs_by_class[c] = np.array(test_inputs_by_class[c])
 
-    random_indices = np.random.choice(train_classB.shape[0], int(args.n_unlabeled / 2), replace=False)
-    train_unlabeled_classB = train_classB[random_indices, :]
-    mask = np.ones(train_classB.shape[0], dtype=bool)
-    mask[random_indices] = False
-    train_classB = train_classB[mask]
+        # train
+        random_indices = np.random.choice(train_inputs_by_class[c].shape[0], int(args.n_labeled / 10), replace=False)
+        train_inputs.append(train_inputs_by_class[c][random_indices, :])
+        mask = np.ones(train_inputs_by_class[c].shape[0], dtype=bool)
+        mask[random_indices] = False
+        train_inputs_by_class[c] = train_inputs_by_class[c][mask]
 
-    train_unlabeled = np.concatenate((train_unlabeled_classA, train_unlabeled_classB))
+        # unlabeled
+        random_indices = np.random.choice(train_inputs_by_class[c].shape[0], int(args.n_unlabeled / 10), replace=False)
+        unlabeled_inputs.append(train_inputs_by_class[c][random_indices, :])
+        mask = np.ones(train_inputs_by_class[c].shape[0], dtype=bool)
+        mask[random_indices] = False
+        train_inputs_by_class[c] = train_inputs_by_class[c][mask]
 
-    # Labeled
-    random_indices = np.random.choice(train_classA.shape[0], int(args.n_labeled / 2), replace=False)
-    train_classA = train_classA[random_indices, :]
-    random_indices = np.random.choice(train_classB.shape[0], int(args.n_labeled / 2), replace=False)
-    train_classB = train_classB[random_indices, :]
+        # test
+        random_indices = np.random.choice(test_inputs_by_class[c].shape[0], int(args.n_test / 10), replace=False)
+        test_inputs.append(test_inputs_by_class[c][random_indices, :])
+        mask = np.ones(test_inputs_by_class[c].shape[0], dtype=bool)
+        mask[random_indices] = False
+        test_inputs_by_class[c] = test_inputs_by_class[c][mask]
 
-    # Get rid of excess test points
-    test_classA = test_inputs[test_targets == -1, :]
-    test_classB = test_inputs[test_targets == 1, :]
-    random_indices = np.random.choice(test_classA.shape[0], int(args.n_test / 2), replace=False)
-    test_classA = test_classA[random_indices, :]
-    random_indices = np.random.choice(test_classB.shape[0], int(args.n_test / 2), replace=False)
-    test_classB = test_classB[random_indices, :]
+    train_inputs = np.array(train_inputs)
+    unlabeled_inputs = np.array(unlabeled_inputs)
+    test_inputs = np.array(test_inputs)
+
+    # Split into classes
+    train_classA = train_inputs[0:5, :, :]
+    train_classB = train_inputs[5:10, :, :]
+    train_classA = train_classA.reshape(train_classA.shape[0] * train_classA.shape[1], train_classA.shape[2])
+    train_classB = train_classB.reshape(train_classB.shape[0] * train_classB.shape[1], train_classB.shape[2])
+
+    train_unlabeled = unlabeled_inputs.reshape(unlabeled_inputs.shape[0] * unlabeled_inputs.shape[1], unlabeled_inputs.shape[2])
+
+    test_classA = test_inputs[0:5, :, :]
+    test_classB = test_inputs[5:10, :, :]
+    test_classA = test_classA.reshape(test_classA.shape[0] * test_classA.shape[1], test_classA.shape[2])
+    test_classB = test_classB.reshape(test_classB.shape[0] * test_classB.shape[1], test_classB.shape[2])
 
     # Save data
     train_classA_save_path = os.path.join(args.save_path, "train_classA.npy")
