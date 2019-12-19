@@ -4,15 +4,18 @@ import argparse
 import numpy as np
 from sklearn.datasets import fetch_openml
 from sklearn.model_selection import train_test_split
+import scipy.sparse as ss
 
 np.random.seed(8)
+
 
 def main():
 
     argparser = argparse.ArgumentParser()
     argparser.add_argument("save_path", type=str, help="Path to save preprocessed data to.")
-    argparser.add_argument("n_unlabeled", type=int, default=1960, help="Number of points to be unlabeled. Remaining points will be labeled.")
-    argparser.add_argument("n_labeled", type=int, default=40, help="Number of points to be labeled. Remaining points will be unlabeled.")
+    argparser.add_argument("n_unlabeled", type=int, help="Number of points to be unlabeled.")
+    argparser.add_argument("n_labeled", type=int, help="Number of points to be labeled.")
+    argparser.add_argument("n_test", type=int, help="Number of test points.")
     args = argparser.parse_args()
 
     # If save path does not exist, create it
@@ -38,25 +41,38 @@ def main():
     test_targets[test_zero_mask] = -1
     test_targets[np.logical_not(test_zero_mask)] = 1
 
-    # Take only number of training samples needed
-    total_n_train = args.n_unlabeled + args.n_labeled
-    train_inputs = train_inputs[0:total_n_train, :]
-    train_targets = train_targets[0:total_n_train]
-
-    # Randomly select specified number of unlabeled samples
-    random_indices = np.random.choice(train_inputs.shape[0], args.n_unlabeled, replace=False)
-    train_unlabeled = train_inputs[random_indices, :]
-    mask = np.ones(train_inputs.shape[0], dtype=bool)
-    mask[random_indices] = False
-    train_inputs = train_inputs[mask]
-    train_targets = train_targets[mask]
-
-    # Extract inputs of each class
+    # Extract inputs of each class, for labeled and unlabeled
     train_classA = train_inputs[train_targets == -1, :]
     train_classB = train_inputs[train_targets == 1, :]
 
+    # Unlabeled
+    random_indices = np.random.choice(train_classA.shape[0], int(args.n_unlabeled / 2), replace=False)
+    train_unlabeled_classA = train_classA[random_indices, :]
+    mask = np.ones(train_classA.shape[0], dtype=bool)
+    mask[random_indices] = False
+    train_classA = train_classA[mask]
+
+    random_indices = np.random.choice(train_classB.shape[0], int(args.n_unlabeled / 2), replace=False)
+    train_unlabeled_classB = train_classB[random_indices, :]
+    mask = np.ones(train_classB.shape[0], dtype=bool)
+    mask[random_indices] = False
+    train_classB = train_classB[mask]
+
+    train_unlabeled = np.concatenate((train_unlabeled_classA, train_unlabeled_classB))
+
+    # Labeled
+    random_indices = np.random.choice(train_classA.shape[0], int(args.n_labeled / 2), replace=False)
+    train_classA = train_classA[random_indices, :]
+    random_indices = np.random.choice(train_classB.shape[0], int(args.n_labeled / 2), replace=False)
+    train_classB = train_classB[random_indices, :]
+
+    # Get rid of excess test points
     test_classA = test_inputs[test_targets == -1, :]
     test_classB = test_inputs[test_targets == 1, :]
+    random_indices = np.random.choice(test_classA.shape[0], int(args.n_test / 2), replace=False)
+    test_classA = test_classA[random_indices, :]
+    random_indices = np.random.choice(test_classB.shape[0], int(args.n_test / 2), replace=False)
+    test_classB = test_classB[random_indices, :]
 
     # Save data
     train_classA_save_path = os.path.join(args.save_path, "train_classA.npy")
