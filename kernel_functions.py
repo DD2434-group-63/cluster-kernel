@@ -96,7 +96,7 @@ def clustring_kernel(X_train, X_unlabeled, X_test, gamma, k):
     # matrix L
     L = np.matmul(sqrt_D, np.matmul(K, sqrt_D))
 
-    _, V = np.linalg.eig(L)
+    _, V = np.linalg.eigh(L)
     # take only k eigenvectors
     V = V[:, 0:k]
     S = []

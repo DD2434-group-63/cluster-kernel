@@ -13,7 +13,7 @@ np.random.seed(8)
 # Hyperparameters
 C = 10
 kernel = "rbf"
-GAMMA = 0.06
+GAMMA = 1 / 784
 
 
 def compute_accuracy(predictions, targets):
