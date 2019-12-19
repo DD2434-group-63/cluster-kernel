@@ -11,9 +11,9 @@ from kernel_functions import *
 np.random.seed(8)
 
 # Hyperparameters
-C = 10
+C = 100
 kernel = "rbf"
-GAMMA = 0.06
+GAMMA = 10
 
 
 def compute_accuracy(predictions, targets):

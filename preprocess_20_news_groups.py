@@ -3,7 +3,7 @@ import argparse
 
 import numpy as np
 from sklearn.datasets import fetch_20newsgroups
-from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import TfidfTransformer, CountVectorizer
 import scipy.sparse as ss
 
 WINDOWS_IND = 4
@@ -37,9 +37,12 @@ if __name__ == "__main__":
     test_targets = test_data.target
 
     # Extract features
-    count_vec = TfidfVectorizer(max_features=7511)
-    train_inputs = count_vec.fit_transform(train_inputs)
-    test_inputs = count_vec.fit_transform(test_inputs)
+    count_vectorizer = CountVectorizer(max_features=7511)
+    train_inputs = count_vectorizer.fit_transform(train_inputs)
+    test_inputs = count_vectorizer.transform(test_inputs)
+    tfidf_transformer = TfidfTransformer()
+    train_inputs = tfidf_transformer.fit_transform(train_inputs)
+    test_inputs = tfidf_transformer.transform(test_inputs)
 
     # Remove samples that are not of class mac or windows
     samples_to_use_mask = np.logical_or(train_targets == WINDOWS_IND, train_targets == MAC_IND)
