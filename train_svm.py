@@ -79,34 +79,30 @@ def main():
     test_inputs = test_inputs[random_perm, :]
     test_targets = test_targets[random_perm]
 
+    print("train input shape:",train_inputs.shape)
+    print("train unlabeled:",train_unlabeled.shape)
+    print("test input shape:", test_inputs.shape)
+    print("test target shape:",test_targets.shape)
+
     # Run SVM
     if args.type_kernel == "normal":  # normal version
         svm = SVC(C=C, kernel="rbf", gamma=GAMMA)
         svm.fit(train_inputs, train_targets)
 
-    elif args.type_kernel == "basic_cluster":  # basic cluster kernel version
-        svm = SVC(C=C, kernel="rbf", gamma=GAMMA)
-        train_inputs_modified, test_inputs_modified = clustring_kernel(train_inputs, train_unlabeled[0:40, :], test_inputs, GAMMA, k=2)
-        svm.fit(train_inputs_modified, train_targets)
-
     else:  # extended cluster kernel version
 
         if args.test_points_at_train == 1:
-            K_tilde_labeled, K_test = cluster_kernel_extension(train_inputs, train_unlabeled[0:40, :], test_inputs, GAMMA, args.type_kernel, 1)
+            K_tilde_labeled, K_test = cluster_kernel_extension(train_inputs, train_unlabeled, test_inputs, GAMMA, args.type_kernel, 1)
         else:
-            K_tilde_labeled, K_labeled = cluster_kernel_extension(train_inputs, train_unlabeled[0:40, :], None, GAMMA, args.type_kernel, 1)
+            K_tilde_labeled, K_labeled = cluster_kernel_extension(train_inputs, train_unlabeled, None, GAMMA, args.type_kernel, 1)
 
         svm = SVC(C=C, kernel="precomputed")
         svm.fit(K_tilde_labeled.T, train_targets.T)
 
-    print("train_input shape:", train_inputs.shape)
-    print("test_input shape:", test_inputs.shape)
 
     # Test SVM
     if args.type_kernel == "normal":
         test_predictions = svm.predict(test_inputs)
-    elif args.type_kernel == "basic_cluster":
-        test_predictions = svm.predict(test_inputs_modified)
     else:
         if args.test_points_at_train == 0:
             K_test = compute_K_test(K_tilde_labeled, K_labeled, train_inputs, test_inputs, GAMMA)

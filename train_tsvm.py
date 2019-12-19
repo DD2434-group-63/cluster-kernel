@@ -10,7 +10,7 @@ np.random.seed(8)
 
 # Hyperparameters
 C = 5
-gamma = 0.467
+gamma = 0.02
 kernel = "rbf"
 
 
@@ -64,16 +64,17 @@ def main():
     test_inputs = test_inputs[random_perm, :]
     test_targets = test_targets[random_perm]
 
-    print(len(train_inputs))
-    print(len(train_unlabeled))
-    print(len(test_targets))
+    print("train input shape:",train_inputs.shape)
+    print("train unlabeled:",train_unlabeled.shape)
+    print("test input shape:", test_inputs.shape)
+    print("test target shape:",test_targets.shape)
 
     # Add test samples to unlabeled samples
     train_unlabeled = np.concatenate((train_unlabeled, test_inputs))
 
     # Run TSVM
     model = TSVM()
-    model.initial('linear', gamma, C)
+    model.initial(kernel, gamma, C)
     model.train(train_inputs, train_targets, train_unlabeled)
 
     # Test TSVM
