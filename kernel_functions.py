@@ -61,11 +61,12 @@ def kernel_poly(Lambda, t):
 
 
 def kernel_poly_step(Lambda, r, p, q):
+    # Getting the index of max values in array
     Lambda_ind = Lambda.argsort()[-r:][::-1]
     Lambda_tilde = Lambda
     for i in range(len(Lambda)):
         if i in Lambda_ind:
-            Lambda_tilde[i] = np.power(Lambda[i], p)
+            Lambda_tilde[i] = np.power(Lambda[i], 1/p)
         else:
             Lambda_tilde[i] = np.power(Lambda[i], q)
     return Lambda_tilde
